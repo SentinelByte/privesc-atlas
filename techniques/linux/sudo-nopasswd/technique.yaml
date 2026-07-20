@@ -1,0 +1,49 @@
+id: sudo-nopasswd
+title: Sudo NOPASSWD Misconfiguration
+platform: linux
+category: misconfiguration
+severity: high
+summary: >-
+  A sudoers NOPASSWD rule on a shell-escapable binary lets a low-privilege
+  user reach a root shell without ever knowing the root password.
+description: >-
+  `sudoers` can grant a user the ability to run specific binaries as root
+  without a password (`NOPASSWD`). If any of those binaries can spawn a
+  shell, read arbitrary files, or execute attacker-supplied code —
+  editors, pagers, interpreters, and dozens of others catalogued by
+  GTFOBins — the intended restriction ("only run this one binary")
+  collapses into full root access. The vulnerability isn't sudo itself;
+  it's a mismatch between "this binary looks safe to whitelist" and "this
+  binary can be made to do anything."
+mitre_attack:
+  - technique_id: T1548.003
+    name: 'Abuse Elevation Control Mechanism: Sudo and Sudo Caching'
+requirements:
+  - 'A sudoers entry granting NOPASSWD on a binary with a known shell-escape (e.g. `dan ALL=(ALL) NOPASSWD: /usr/bin/vim`)'
+  - The binary itself installed and reachable via $PATH
+exploitation_steps:
+  - Run `sudo -l` to enumerate NOPASSWD-permitted commands for the current user.
+  - Cross-reference each command against a shell-escape catalogue (GTFOBins).
+  - Invoke the escape, e.g. `sudo vim -c ':!bash'`, to obtain a root shell.
+poc:
+  - poc.sh
+detections:
+  - type: osquery
+    path: detections/osquery/linux_sudo_nopasswd.conf
+    description: Periodically flags sudoers entries granting NOPASSWD on ALL commands.
+  - type: sigma
+    path: detections/sigma/linux_sudo_nopasswd.yml
+    description: Flags process creation for sudo invocations of known shell-escapable binaries.
+mitigations:
+  - Never grant NOPASSWD on interpreters, editors, or pagers; scope sudoers rules to a single fully-qualified binary and, where possible, fixed arguments.
+  - Use `sudoedit` instead of granting sudo on an editor directly.
+  - Alert on `sudo -l` reconnaissance and on sudo invocations of binaries listed in GTFOBins.
+  - Run periodic sudoers audits (e.g. the osquery check below) rather than relying on one-time review at grant time.
+references:
+  - title: GTFOBins
+    url: https://gtfobins.github.io/
+  - title: 'MITRE ATT&CK T1548.003'
+    url: https://attack.mitre.org/techniques/T1548/003/
+disclaimer: >-
+  For authorized security testing and lab use only. Run this against systems
+  you own or are explicitly authorized to test.
