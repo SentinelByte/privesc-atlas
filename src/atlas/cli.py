@@ -1,9 +1,9 @@
 """`atlas` — validate, render, and query the technique knowledge base.
 
-    atlas validate         schema + cross-reference + Sigma syntax checks (CI gate)
-    atlas render [--check] regenerate technique READMEs from technique.yaml
-    atlas list              table of all techniques
-    atlas attack-layer       emit a MITRE ATT&CK Navigator layer of covered techniques
+atlas validate         schema + cross-reference + Sigma syntax checks (CI gate)
+atlas render [--check] regenerate technique READMEs from technique.yaml
+atlas list              table of all techniques
+atlas attack-layer       emit a MITRE ATT&CK Navigator layer of covered techniques
 """
 
 from __future__ import annotations
