@@ -1,0 +1,52 @@
+id: launch-daemon
+title: macOS LaunchDaemons — Privileged Root-Level Persistence
+platform: macos
+category: persistence
+severity: high
+summary: >-
+  A root-writable /Library/LaunchDaemons/ directory lets an attacker who
+  already has root turn a one-time compromise into a durable, reliable
+  root foothold that survives reboot.
+description: >-
+  LaunchDaemons are system-wide services defined by `.plist` files in
+  `/Library/LaunchDaemons/`, executed as root at boot or on demand via
+  `launchctl`. This is not itself a privilege-escalation primitive — it
+  requires root to write there — but it is the standard way root access
+  is converted into privileged persistence, and it is exactly the
+  mechanism a privileged process abused via another technique (an
+  unattended installer, a vulnerable root service, a supply-chain
+  implant) will use to keep root access after the original vector is
+  patched.
+mitre_attack:
+  - technique_id: T1543.004
+    name: 'Create or Modify System Process: Launch Daemon'
+requirements:
+  - Root or sudo access
+  - A payload binary or command to execute as root
+exploitation_steps:
+  - Craft a .plist specifying the payload in ProgramArguments.
+  - Copy it to /Library/LaunchDaemons/.
+  - Set ownership/permissions expected by launchd (root:wheel, 644).
+  - Load it with `launchctl load <path>`, or let it run automatically at next boot.
+poc:
+  - poc.sh
+detections:
+  - type: sigma
+    path: detections/sigma/macos_launch_daemon.yml
+    description: Flags creation of .plist files under /Library/LaunchDaemons/.
+  - type: osquery
+    path: detections/osquery/macos_launch_daemon.conf
+    description: Periodically enumerates root LaunchDaemon plists and tracks file-event changes.
+mitigations:
+  - File-integrity-monitor /Library/LaunchDaemons/ and alert on any write, not just on load.
+  - Require code-signed, notarized binaries for anything referenced by a LaunchDaemon.
+  - Treat any new LaunchDaemon as a high-severity event requiring review — legitimate software rarely needs to add one outside a signed installer.
+  - Restrict who can obtain root in the first place; this technique is post-exploitation, so upstream privilege controls are the real mitigation.
+references:
+  - title: 'MITRE ATT&CK T1543.004'
+    url: https://attack.mitre.org/techniques/T1543/004/
+  - title: 'Objective-See: Malware Persistence on macOS'
+    url: https://objective-see.org/blog/blog_0x26.html
+disclaimer: >-
+  For authorized security testing and lab use only. Requires root; run
+  only against systems you own or are explicitly authorized to test.

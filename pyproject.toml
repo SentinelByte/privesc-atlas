@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "privesc-atlas"
+version = "0.1.0"
+description = "Schema-validated, CI-enforced knowledge base of privilege escalation techniques across OS, cloud, and AI agents."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "SentinelByte" }]
+dependencies = [
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+    "typer>=0.12",
+    "rich>=13.7",
+    "pysigma>=0.11",
+]
+
+[project.scripts]
+atlas = "atlas.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "bandit>=1.7",
+    "types-pyyaml",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/atlas"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "B008",   # typer.Option() in default args is the standard Typer pattern
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/atlas"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=atlas --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "techniques"]

@@ -1,0 +1,54 @@
+id: launch-agents
+title: macOS LaunchAgents — Privilege Escalation via User-Space Persistence
+platform: macos
+category: persistence
+severity: medium
+summary: >-
+  Writable LaunchAgent/LaunchDaemon directories let an attacker register a
+  payload that macOS launches automatically at login or boot.
+description: >-
+  macOS starts background tasks via `LaunchAgents` (`.plist` files),
+  loaded from `~/Library/LaunchAgents/` for the current user or
+  `/Library/LaunchAgents/` system-wide. `~/Library/LaunchAgents/` alone
+  does not cross a privilege boundary — it runs as the current user — but
+  it becomes a genuine escalation vector once an attacker can write to a
+  system-level LaunchAgents/LaunchDaemons directory, or where a
+  privileged LaunchDaemon can be induced to load a user-controlled
+  binary. Even limited to user space, it is a reliable stealthy
+  persistence and lateral-movement primitive.
+mitre_attack:
+  - technique_id: T1543.001
+    name: 'Create or Modify System Process: Launch Agent'
+requirements:
+  - Write access to ~/Library/LaunchAgents/ (default for user accounts)
+  - A script or binary to execute
+  - "Optional, for real privilege escalation rather than persistence: write access to /Library/LaunchAgents/ or /Library/LaunchDaemons/"
+exploitation_steps:
+  - Craft a .plist file whose ProgramArguments point at a payload.
+  - Place it in ~/Library/LaunchAgents/ (or a system LaunchAgents/LaunchDaemons directory if writable).
+  - Load it immediately with `launchctl load <path>`, or wait for the next login/boot.
+  - The system executes the payload as the owning context (current user, or root for a system LaunchDaemon).
+poc:
+  - poc.sh
+  - poc_reverse_shell.sh
+detections:
+  - type: sigma
+    path: detections/sigma/macos_launch_agents.yml
+    description: Flags creation of .plist files under LaunchAgents directories.
+  - type: osquery
+    path: detections/osquery/macos_launch_agents.conf
+    description: Periodically enumerates user-level LaunchAgent plists.
+mitigations:
+  - Enforce least privilege on ~/Library/LaunchAgents/, /Library/LaunchAgents/, and /Library/LaunchDaemons/.
+  - Enable SIP and require code signing for loaded agents/daemons where possible.
+  - File-integrity-monitor LaunchAgent/LaunchDaemon directories and alert on new or modified plists.
+  - Audit `launchctl load`/`launchctl bootstrap` invocations.
+references:
+  - title: 'MITRE ATT&CK T1543.001'
+    url: https://attack.mitre.org/techniques/T1543/001/
+  - title: 'Objective-See: Malware Persistence on macOS'
+    url: https://objective-see.org/blog/blog_0x26.html
+disclaimer: >-
+  For authorized security testing and lab use only. poc_reverse_shell.sh
+  requires an explicit --i-have-authorization flag and will refuse to run
+  without one.
