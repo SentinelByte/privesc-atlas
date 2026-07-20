@@ -42,6 +42,7 @@ class TestLoadTechnique:
         bad.write_text(": : invalid yaml :::\n")
         import yaml as _yaml
         from pydantic import ValidationError
+
         with pytest.raises((_yaml.YAMLError, ValidationError, Exception)):
             load_technique(bad)
 
@@ -74,7 +75,10 @@ class TestLoadAll:
         (tech_dir / "technique.yaml").write_text(yaml.dump(data))
         result = load_all(tmp_path)
         assert not result.ok
-        assert any("wrong-id" in e.message or "correct-folder" in e.message for e in result.errors)
+        assert any(
+            "wrong-id" in e.message or "correct-folder" in e.message
+            for e in result.errors
+        )
 
     def test_no_duplicate_ids(self, techniques_root: Path) -> None:
         result = load_all(techniques_root)

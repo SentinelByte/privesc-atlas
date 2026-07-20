@@ -37,15 +37,21 @@ class TestValidateCommand:
 
 
 class TestRenderCommand:
-    def test_render_check_passes_when_readmes_current(self, techniques_root: Path) -> None:
-        result = runner.invoke(app, ["render", "--root", str(techniques_root), "--check"])
+    def test_render_check_passes_when_readmes_current(
+        self, techniques_root: Path
+    ) -> None:
+        result = runner.invoke(
+            app, ["render", "--root", str(techniques_root), "--check"]
+        )
         assert result.exit_code == 0, result.output
 
     def test_render_writes_readme(self, valid_technique_dir: Path) -> None:
         readme = valid_technique_dir / "README.md"
         if readme.exists():
             readme.unlink()
-        result = runner.invoke(app, ["render", "--root", str(valid_technique_dir.parent)])
+        result = runner.invoke(
+            app, ["render", "--root", str(valid_technique_dir.parent)]
+        )
         assert result.exit_code == 0, result.output
         assert readme.exists()
 
@@ -63,7 +69,11 @@ class TestListCommand:
         result = runner.invoke(app, ["list", "--root", str(techniques_root)])
         assert result.exit_code == 0, result.output
         # Rich table output should contain platform and severity columns
-        assert "linux" in result.output or "windows" in result.output or "macos" in result.output
+        assert (
+            "linux" in result.output
+            or "windows" in result.output
+            or "macos" in result.output
+        )
 
     def test_list_shows_all_platforms(self, techniques_root: Path) -> None:
         result = runner.invoke(app, ["list", "--root", str(techniques_root)])
@@ -74,7 +84,9 @@ class TestListCommand:
 
 
 class TestAttackLayerCommand:
-    def test_attack_layer_creates_json(self, techniques_root: Path, tmp_path: Path) -> None:
+    def test_attack_layer_creates_json(
+        self, techniques_root: Path, tmp_path: Path
+    ) -> None:
         output = tmp_path / "layer.json"
         result = runner.invoke(
             app,
@@ -83,7 +95,9 @@ class TestAttackLayerCommand:
         assert result.exit_code == 0, result.output
         assert output.exists()
 
-    def test_attack_layer_valid_json(self, techniques_root: Path, tmp_path: Path) -> None:
+    def test_attack_layer_valid_json(
+        self, techniques_root: Path, tmp_path: Path
+    ) -> None:
         import json
 
         output = tmp_path / "layer.json"

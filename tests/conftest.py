@@ -47,7 +47,9 @@ def full_technique() -> Technique:
         summary="A full technique used in render tests.",
         description="This technique has all optional fields populated.",
         mitre_attack=[
-            MitreMapping(technique_id="T1574.009", name="Path Interception by Unquoted Path")
+            MitreMapping(
+                technique_id="T1574.009", name="Path Interception by Unquoted Path"
+            )
         ],
         requirements=["Requirement A", "Requirement B"],
         exploitation_steps=["Step one", "Step two"],

@@ -165,7 +165,9 @@ class TestTechnique:
                 requirements=["r"],
                 exploitation_steps=["s"],
                 mitigations=["m"],
-                detections=[DetectionArtifact(type=DetectionType.SIGMA, path="nonexistent.yml")],
+                detections=[
+                    DetectionArtifact(type=DetectionType.SIGMA, path="nonexistent.yml")
+                ],
                 source_dir=tmp_path,
             )
 

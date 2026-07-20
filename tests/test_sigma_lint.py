@@ -82,7 +82,9 @@ class TestLintSigmaFile:
 
 
 class TestLintAll:
-    def test_lint_multiple(self, valid_sigma_file: Path, invalid_yaml_file: Path) -> None:
+    def test_lint_multiple(
+        self, valid_sigma_file: Path, invalid_yaml_file: Path
+    ) -> None:
         results = lint_all([valid_sigma_file, invalid_yaml_file])
         assert len(results) == 2
         assert results[0].ok

@@ -21,9 +21,19 @@ SESSION = "test-session"
 @pytest.fixture
 def engine() -> PolicyEngine:
     e = PolicyEngine()
-    e.register(ToolSpec(name="web_fetch", min_trust=TrustLevel.UNTRUSTED, human_confirmable=False))
-    e.register(ToolSpec(name="send_email", min_trust=TrustLevel.USER, human_confirmable=True))
-    e.register(ToolSpec(name="execute_code", min_trust=TrustLevel.TRUSTED, human_confirmable=False))
+    e.register(
+        ToolSpec(
+            name="web_fetch", min_trust=TrustLevel.UNTRUSTED, human_confirmable=False
+        )
+    )
+    e.register(
+        ToolSpec(name="send_email", min_trust=TrustLevel.USER, human_confirmable=True)
+    )
+    e.register(
+        ToolSpec(
+            name="execute_code", min_trust=TrustLevel.TRUSTED, human_confirmable=False
+        )
+    )
     return e
 
 
@@ -44,12 +54,16 @@ class TestPolicyEngineEvaluate:
         result = engine.evaluate(SESSION, "send_email", TrustLevel.USER)
         assert result.decision == Decision.ALLOW
 
-    def test_require_confirmation_for_untrusted_on_user_tool(self, engine: PolicyEngine) -> None:
+    def test_require_confirmation_for_untrusted_on_user_tool(
+        self, engine: PolicyEngine
+    ) -> None:
         result = engine.evaluate(SESSION, "send_email", TrustLevel.UNTRUSTED)
         assert result.decision == Decision.REQUIRE_CONFIRMATION
 
     def test_allow_with_confirmed_override(self, engine: PolicyEngine) -> None:
-        result = engine.evaluate(SESSION, "send_email", TrustLevel.UNTRUSTED, confirmed=True)
+        result = engine.evaluate(
+            SESSION, "send_email", TrustLevel.UNTRUSTED, confirmed=True
+        )
         assert result.decision == Decision.ALLOW
 
     def test_deny_non_confirmable_below_min_trust(self, engine: PolicyEngine) -> None:
@@ -61,8 +75,12 @@ class TestPolicyEngineEvaluate:
         assert result.decision == Decision.DENY
         assert "unknown tool" in result.reason
 
-    def test_confirmed_true_does_not_override_non_confirmable(self, engine: PolicyEngine) -> None:
-        result = engine.evaluate(SESSION, "execute_code", TrustLevel.UNTRUSTED, confirmed=True)
+    def test_confirmed_true_does_not_override_non_confirmable(
+        self, engine: PolicyEngine
+    ) -> None:
+        result = engine.evaluate(
+            SESSION, "execute_code", TrustLevel.UNTRUSTED, confirmed=True
+        )
         assert result.decision == Decision.DENY
 
     def test_returns_policy_decision(self, engine: PolicyEngine) -> None:
@@ -98,7 +116,13 @@ class TestAuditLog:
     def test_audit_event_to_dict_keys(self, engine: PolicyEngine) -> None:
         engine.evaluate(SESSION, "web_fetch", TrustLevel.USER)
         d = engine.audit_log[-1].to_dict()
-        assert set(d.keys()) == {"session_id", "tool_name", "provenance", "decision", "reason"}
+        assert set(d.keys()) == {
+            "session_id",
+            "tool_name",
+            "provenance",
+            "decision",
+            "reason",
+        }
 
     def test_audit_event_provenance_lowercase(self, engine: PolicyEngine) -> None:
         engine.evaluate(SESSION, "web_fetch", TrustLevel.UNTRUSTED)
@@ -109,16 +133,28 @@ class TestAuditLog:
 class TestAuditRegistry:
     def test_clean_registry_returns_empty(self) -> None:
         e = PolicyEngine()
-        e.register(ToolSpec(name="send_email", min_trust=TrustLevel.USER, human_confirmable=True))
         e.register(
-            ToolSpec(name="execute_code", min_trust=TrustLevel.TRUSTED, human_confirmable=False)
+            ToolSpec(
+                name="send_email", min_trust=TrustLevel.USER, human_confirmable=True
+            )
+        )
+        e.register(
+            ToolSpec(
+                name="execute_code",
+                min_trust=TrustLevel.TRUSTED,
+                human_confirmable=False,
+            )
         )
         assert e.audit_registry() == []
 
     def test_misconfigured_tool_flagged(self) -> None:
         e = PolicyEngine()
         e.register(
-            ToolSpec(name="dangerous", min_trust=TrustLevel.UNTRUSTED, human_confirmable=False)
+            ToolSpec(
+                name="dangerous",
+                min_trust=TrustLevel.UNTRUSTED,
+                human_confirmable=False,
+            )
         )
         findings = e.audit_registry()
         assert len(findings) == 1
@@ -127,7 +163,9 @@ class TestAuditRegistry:
 
     def test_user_min_trust_not_flagged(self) -> None:
         e = PolicyEngine()
-        e.register(ToolSpec(name="safe", min_trust=TrustLevel.USER, human_confirmable=True))
+        e.register(
+            ToolSpec(name="safe", min_trust=TrustLevel.USER, human_confirmable=True)
+        )
         assert e.audit_registry() == []
 
     def test_multiple_misconfigured_tools_all_flagged(self) -> None:

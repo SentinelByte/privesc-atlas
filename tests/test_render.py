@@ -83,7 +83,9 @@ class TestRenderAll:
         diffs = render_all([t], check=True)
         assert diffs[0].up_to_date
 
-    def test_check_mode_detects_stale(self, minimal_technique: Technique, tmp_path: Path) -> None:
+    def test_check_mode_detects_stale(
+        self, minimal_technique: Technique, tmp_path: Path
+    ) -> None:
         t = minimal_technique.model_copy(update={"source_dir": tmp_path})
         (tmp_path / "README.md").write_text("old content")
         diffs = render_all([t], check=True)
@@ -91,12 +93,16 @@ class TestRenderAll:
         # check mode must not overwrite
         assert (tmp_path / "README.md").read_text() == "old content"
 
-    def test_check_mode_does_not_write(self, minimal_technique: Technique, tmp_path: Path) -> None:
+    def test_check_mode_does_not_write(
+        self, minimal_technique: Technique, tmp_path: Path
+    ) -> None:
         t = minimal_technique.model_copy(update={"source_dir": tmp_path})
         render_all([t], check=True)
         assert not (tmp_path / "README.md").exists()
 
-    def test_render_diff_fields(self, minimal_technique: Technique, tmp_path: Path) -> None:
+    def test_render_diff_fields(
+        self, minimal_technique: Technique, tmp_path: Path
+    ) -> None:
         t = minimal_technique.model_copy(update={"source_dir": tmp_path})
         diffs = render_all([t])
         diff = diffs[0]
