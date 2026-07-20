@@ -42,6 +42,7 @@ class TestLoadTechnique:
         bad.write_text(": : invalid yaml :::\n")
         import yaml as _yaml
         from pydantic import ValidationError
+
         with pytest.raises((_yaml.YAMLError, ValidationError, Exception)):
             load_technique(bad)
 
