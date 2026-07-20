@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package with dev dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check src/ tests/
+
+      - name: Format check (ruff)
+        run: ruff format --check src/ tests/
+
+      - name: Type check (mypy)
+        run: mypy src/
+
+      - name: Security scan (bandit)
+        run: bandit -r src/ -ll
+
+      - name: Run tests with coverage
+        run: pytest --cov=atlas --cov-report=term-missing --cov-fail-under=90
+
+      - name: Validate all technique.yaml files
+        run: atlas validate
+
+      - name: Check rendered READMEs are up to date
+        run: atlas render --check
