@@ -1,0 +1,39 @@
+title: MCP Agent Tool Call with Untrusted Provenance
+id: c7e1a4f2-8b3d-4f9e-a2c1-6d8b7e3f1a9c
+description: >
+  Detects LLM/MCP tool calls triggered by untrusted content (e.g. fetched web pages,
+  file contents, or prior tool results). An UNTRUSTED-provenance tool call on a
+  high-privilege tool is a confused-deputy / prompt-injection escalation attempt.
+  Matches against JSON-lines audit records emitted by atlas.policy.PolicyEngine.
+author: SentinelByte
+date: 2026-07-16
+status: experimental
+references:
+  - https://atlas.mitre.org/techniques/AML.T0051
+  - https://attack.mitre.org/techniques/T1059/
+logsource:
+  category: application
+  product: atlas-agent
+  definition: >
+    JSON-lines audit log produced by atlas.policy.PolicyEngine.evaluate().
+    Each record contains: session_id, tool_name, provenance, decision, reason.
+detection:
+  selection_untrusted_blocked:
+    provenance: untrusted
+    decision:
+      - deny
+      - require_confirmation
+  condition: selection_untrusted_blocked
+fields:
+  - session_id
+  - tool_name
+  - provenance
+  - decision
+  - reason
+falsepositives:
+  - Intentional dry-run or policy stress-test by a security engineer
+level: high
+tags:
+  - attack.privilege_escalation
+  - attack.execution
+  - attack.t1059
